@@ -1,0 +1,150 @@
+preprocess:
+  cmd: python -m spacy run preprocess
+  script:
+    - mkdir -p corpus/UD_English-EWT
+    - python -m spacy convert assets/UD_English-EWT/en_ewt-ud-train.conllu  corpus/UD_English-EWT/  --converter
+      conllu  --n-sents 10  --merge-subtokens
+    - python -m spacy convert  assets/UD_English-EWT/en_ewt-ud-dev.conllu  corpus/UD_English-EWT/  --converter
+      conllu  --n-sents 10  --merge-subtokens
+    - python -m spacy convert  assets/UD_English-EWT/en_ewt-ud-test.conllu corpus/UD_English-EWT/
+      --converter conllu  --n-sents 10  --merge-subtokens
+    - mv corpus/UD_English-EWT/en_ewt-ud-train.spacy corpus/UD_English-EWT/train.spacy
+    - mv corpus/UD_English-EWT/en_ewt-ud-dev.spacy corpus/UD_English-EWT/dev.spacy
+    - mv corpus/UD_English-EWT/en_ewt-ud-test.spacy corpus/UD_English-EWT/test.spacy
+  deps:
+    - path: assets/UD_English-EWT/en_ewt-ud-train.conllu
+      md5: ad8a043329b5418fa8b8a777f7eec9c7
+    - path: assets/UD_English-EWT/en_ewt-ud-dev.conllu
+      md5: 0a56a10f0209307bb8f729e29a140ef7
+    - path: assets/UD_English-EWT/en_ewt-ud-test.conllu
+      md5: 311aa12c9e3416b6ae99f6957e1589a5
+  outs:
+    - path: corpus/UD_English-EWT/train.spacy
+      md5: 597e9cbcc26847b25de1f3b9cad35727
+    - path: corpus/UD_English-EWT/dev.spacy
+      md5: 5ce3599c9627d8812eb6f78797dd5bfd
+    - path: corpus/UD_English-EWT/test.spacy
+      md5: d557c60dfa43c3b72a3678f836753769
+  spacy_version: 3.3.0
+  spacy_git_version: Unknown
+train:
+  cmd: python -m spacy run train
+  script:
+    - python -m spacy train  configs/default.cfg --output training/UD_English-EWT
+      --gpu-id -1  --paths.train corpus/UD_English-EWT/train.spacy  --paths.dev corpus/UD_English-EWT/dev.spacy  --nlp.lang=en
+  deps:
+    - path: corpus/UD_English-EWT/train.spacy
+      md5: 597e9cbcc26847b25de1f3b9cad35727
+    - path: corpus/UD_English-EWT/dev.spacy
+      md5: 5ce3599c9627d8812eb6f78797dd5bfd
+    - path: configs/default.cfg
+      md5: d4c77a46724d79b5632702ee377f9c83
+  outs:
+    - path: training/UD_English-EWT/model-best
+      md5: 336ee4a0228313c137ee7dc4ab5bc3c6
+  spacy_version: 3.3.0
+  spacy_git_version: Unknown
+evaluate:
+  cmd: python -m spacy run evaluate
+  script:
+    - python -m spacy evaluate  ./training/UD_English-EWT/model-best  ./corpus/UD_English-EWT/test.spacy  --output
+      ./metrics/UD_English-EWT.json  --gpu-id -1
+  deps:
+    - path: training/UD_English-EWT/model-best
+      md5: 336ee4a0228313c137ee7dc4ab5bc3c6
+    - path: corpus/UD_English-EWT/test.spacy
+      md5: d557c60dfa43c3b72a3678f836753769
+  outs:
+    - path: metrics/UD_English-EWT.json
+      md5: 6b396ace2ac370c7e6c83dde9aa45a37
+  spacy_version: 3.3.0
+  spacy_git_version: Unknown
+package:
+  cmd: python -m spacy run package
+  script:
+    - python -m spacy package  training/UD_English-EWT/model-best packages  --name
+      ud_en_ewt  --version 0.0.0 --force
+  deps:
+    - path: training/UD_English-EWT/model-best
+      md5: 336ee4a0228313c137ee7dc4ab5bc3c6
+  outs:
+    - path: packages/en_ud_en_ewt-0.0.0/dist/en_ud_en_ewt-0.0.0.tar.gz
+      md5: 8f562819ca25cc2afbdc588cafbaf535
+  spacy_version: 3.3.0
+  spacy_git_version: Unknown
+preprocesscraft:
+  cmd: python -m spacy run preprocesscraft
+  script:
+    - mkdir -p corpus/crafttrain/craft
+    - python -m spacy convert ../crafttrain/craft/craft-train.conllu  corpus/crafttrain/craft/  --converter
+      conllu  --n-sents 10  --merge-subtokens
+    - python -m spacy convert  ../crafttrain/craft/craft-dev.conllu  corpus/crafttrain/craft/  --converter
+      conllu  --n-sents 10  --merge-subtokens
+    - python -m spacy convert  ../crafttrain/craft/craft-test.conllu corpus/crafttrain/craft/
+      --converter conllu  --n-sents 10  --merge-subtokens
+    - mv corpus/crafttrain/craft/craft-train.spacy corpus/crafttrain/craft/train.spacy
+    - mv corpus/crafttrain/craft/craft-dev.spacy corpus/crafttrain/craft/dev.spacy
+    - mv corpus/crafttrain/craft/craft-test.spacy corpus/crafttrain/craft/test.spacy
+  deps:
+    - path: ../crafttrain/craft/craft-train.conllu
+      md5: 9c5aa1360a661d9cc18d22d381e68c65
+    - path: ../crafttrain/craft/craft-dev.conllu
+      md5: cdd542be2c77dc14248fb779b159325e
+    - path: ../crafttrain/craft/craft-test.conllu
+      md5: eeced68e2cd17649092d88047cc68add
+  outs:
+    - path: corpus/crafttrain/craft/train.spacy
+      md5: 42654ad8dc49d94b7ba219b97a86e5f3
+    - path: corpus/crafttrain/craft/dev.spacy
+      md5: 064cee2bbd551c44a0dcf6c986e6d4cf
+    - path: corpus/crafttrain/craft/test.spacy
+      md5: aa77eca5af7cafb474c0bab6b8af20ab
+  spacy_version: 3.3.0
+  spacy_git_version: Unknown
+traincraft:
+  cmd: python -m spacy run traincraft
+  script:
+    - python -m spacy train  configs/default.cfg --output ../crafttrain/craft --gpu-id
+      -1  --paths.train corpus/crafttrain/craft/train.spacy  --paths.dev corpus/crafttrain/craft/dev.spacy  --nlp.lang=en
+  deps:
+    - path: corpus/crafttrain/craft/train.spacy
+      md5: 42654ad8dc49d94b7ba219b97a86e5f3
+    - path: corpus/crafttrain/craft/dev.spacy
+      md5: 064cee2bbd551c44a0dcf6c986e6d4cf
+    - path: configs/default.cfg
+      md5: d4c77a46724d79b5632702ee377f9c83
+  outs:
+    - path: training/crafttrain/craft/model-best
+      md5: null
+  spacy_version: 3.3.0
+  spacy_git_version: Unknown
+evaluatecraft:
+  cmd: python -m spacy run evaluatecraft
+  script:
+    - python -m spacy evaluate  ../crafttrain/craft/model-best  ./corpus/crafttrain/craft/test.spacy  --output
+      ./metrics/crafttrain/craft.json  --gpu-id -1
+  deps:
+    - path: ../crafttrain/craft/model-best
+      md5: 55fe7c7e15985368cb4e8b26d67d5d6b
+    - path: corpus/crafttrain/craft/test.spacy
+      md5: aa77eca5af7cafb474c0bab6b8af20ab
+  outs:
+    - path: metrics/crafttrain/craft.json
+      md5: 5d1b27d4e2c1ac25dce8e1d3dbf791d5
+  spacy_version: 3.3.0
+  spacy_git_version: Unknown
+evaluatecraft2:
+  cmd: python -m spacy run evaluatecraft2
+  script:
+    - python -m spacy evaluate  ../crafttrain/craft/model-best  ./corpus/crafttrain/craft/test.spacy  --output
+      ./metrics/crafttrain/craft2.json  --gpu-id -1
+  deps:
+    - path: ../crafttrain/craft/model-best
+      md5: 55fe7c7e15985368cb4e8b26d67d5d6b
+    - path: corpus/crafttrain/craft/test.spacy
+      md5: aa77eca5af7cafb474c0bab6b8af20ab
+  outs:
+    - path: metrics/crafttrain/craft2.json
+      md5: 5d4a206453b13d683eff5e208f9bc096
+  spacy_version: 3.3.0
+  spacy_git_version: Unknown
